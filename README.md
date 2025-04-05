@@ -22,7 +22,7 @@
 1. Клонируйте репозиторий:
 ```bash
 git clone https://github.com/KssIvanova/Sber_cat_predictor
-cd котик-предсказатель
+cd Sber_cat_predictor
 ```
 
 2. Создайте виртуальное окружение и установите зависимости:
