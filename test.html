@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест API Котика-Предсказателя</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест API Котика-Предсказателя</h1>
+    <div class="form-group">
+        <button onclick="sendRequest('предскажи')">Получить предсказание</button>
+    </div>
+    <div class="form-group">
+        <button onclick="sendRequest('помощь')">Помощь</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        async function sendRequest(command) {
+            try {
+                const response = await fetch('http://localhost:8000/webhook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ command: command })
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').textContent = data.response.text;
+            } catch (error) {
+                document.getElementById('result').textContent = 'Ошибка: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 

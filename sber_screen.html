@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Котик-Предсказатель для Сбер</title>
+    <style>
+        :root {
+            --primary-color: #FF69B4;
+            --primary-light: #FFB6C1;
+            --primary-dark: #DB7093;
+            --secondary-color: #FFC0CB;
+            --background-color: #FFF0F5;
+            --text-color: #4A4A4A;
+            --shadow-color: rgba(255, 105, 180, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            background-image: radial-gradient(circle at 50% 50%, var(--primary-light) 0%, var(--background-color) 50%);
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px var(--shadow-color);
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            position: relative;
+            display: inline-block;
+            text-shadow: 2px 2px 4px var(--shadow-color);
+        }
+
+        h1::after {
+            content: '🐱';
+            position: absolute;
+            right: -35px;
+            top: 0;
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .prediction-container {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-light));
+            color: var(--text-color);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 1.5rem 0;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px var(--shadow-color);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            gap: 1rem;
+        }
+
+        .cat-icon {
+            font-size: 2rem;
+            animation: float 3s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .voice-commands {
+            margin-top: 1.5rem;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .voice-commands h2 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .voice-commands ul {
+            list-style-type: none;
+        }
+
+        .voice-commands li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .voice-commands li::before {
+            content: '🎤';
+            position: absolute;
+            left: 0;
+        }
+
+        .mic-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px var(--shadow-color);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mic-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px var(--shadow-color);
+        }
+
+        .mic-button.recording {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .prediction-container {
+                padding: 1.5rem;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Котик-Предсказатель</h1>
+        <div class="prediction-container">
+            <span class="cat-icon">🐱</span>
+            <div id="prediction">Скажите "предскажи" для получения предсказания</div>
+        </div>
+        <button id="micButton" class="mic-button">
+            <span>🎤</span>
+            Нажмите для голосовой команды
+        </button>
+        <div id="status" class="status"></div>
+        <div class="voice-commands">
+            <h2>Голосовые команды:</h2>
+            <ul>
+                <li>"предскажи" или "расскажи предсказание" - получить предсказание</li>
+                <li>"помощь" или "что ты умеешь" - получить справку</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Функция для озвучки текста
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ru-RU';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                const voices = window.speechSynthesis.getVoices();
+                const russianVoice = voices.find(voice => voice.lang.includes('ru'));
+                if (russianVoice) {
+                    utterance.voice = russianVoice;
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Эмуляция получения предсказаний от сервера
+        async function getPrediction() {
+            try {
+                const response = await fetch('http://localhost:8000/webhook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ command: 'предскажи' })
+                });
+                
+                const data = await response.json();
+                const predictionText = data.response.text;
+                document.getElementById('prediction').innerHTML = predictionText;
+                speakText(predictionText);
+            } catch (error) {
+                const errorText = 'Ошибка: ' + error.message;
+                document.getElementById('prediction').innerHTML = errorText;
+                speakText(errorText);
+            }
+        }
+
+        // Инициализация распознавания голоса
+        let recognition = null;
+        let isListening = false;
+        let isInitialized = false;
+
+        function initSpeechRecognition() {
+            if (isInitialized) return;
+            
+            try {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ru-RU';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                recognition.continuous = false;
+
+                recognition.onstart = function() {
+                    isListening = true;
+                    document.getElementById('micButton').classList.add('recording');
+                    document.getElementById('status').textContent = 'Слушаю...';
+                };
+
+                recognition.onend = function() {
+                    isListening = false;
+                    document.getElementById('micButton').classList.remove('recording', 'active');
+                    document.getElementById('status').textContent = '';
+                };
+
+                recognition.onresult = function(event) {
+                    const command = event.results[0][0].transcript.toLowerCase();
+                    document.getElementById('status').textContent = `Распознано: "${command}"`;
+                    
+                    if (command.includes('предскажи') || command.includes('предсказание')) {
+                        getPrediction();
+                    } else if (command.includes('помощь') || command.includes('умеешь')) {
+                        const helpText = 'Я умею предсказывать будущее! Просто скажите "предскажи" или "расскажи предсказание".';
+                        document.getElementById('prediction').innerHTML = helpText;
+                        speakText(helpText);
+                    } else {
+                        const errorText = 'Извините, я не понял команду. Скажите "предскажи" или "помощь".';
+                        document.getElementById('prediction').innerHTML = errorText;
+                        speakText(errorText);
+                    }
+                };
+
+                recognition.onerror = function(event) {
+                    const errorText = 'Ошибка: ' + event.error;
+                    document.getElementById('status').textContent = errorText;
+                    document.getElementById('micButton').classList.remove('recording', 'active');
+                    speakText(errorText);
+                };
+
+                // Инициализация голосов при загрузке страницы
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.onvoiceschanged = function() {
+                        // Голоса загружены
+                    };
+                }
+
+                isInitialized = true;
+            } catch (e) {
+                const errorText = 'Ваш браузер не поддерживает распознавание голоса. Пожалуйста, используйте Chrome или Edge.';
+                document.getElementById('status').textContent = errorText;
+                document.getElementById('micButton').style.display = 'none';
+                speakText(errorText);
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            initSpeechRecognition();
+            
+            document.getElementById('micButton').addEventListener('click', function() {
+                if (!isListening && recognition) {
+                    this.classList.add('active');
+                    recognition.start();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
