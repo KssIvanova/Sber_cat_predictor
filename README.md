@@ -21,7 +21,7 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/ваш-username/котик-предсказатель.git
+git clone https://github.com/KssIvanova/Sber_cat_predictor
 cd котик-предсказатель
 ```
 
